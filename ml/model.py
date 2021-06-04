@@ -1,4 +1,5 @@
 import tensorflow as tf
+
 class RNNModel:
     def __init__(self):
         pass

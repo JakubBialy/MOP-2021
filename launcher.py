@@ -13,11 +13,12 @@ if __name__ == '__main__':
     print(f'Colab detected: {colab_detected()}')
 
     # Data
+    # CryptoArchiveDataLoader.clear_all_caches()  # Optional
     data_loader = CryptoArchiveDataLoader()
     data = data_loader.load('ETHUSDT')
 
     # Data Normalziation
-    normalized_data = CryptoArchiveDataLoader.normalize(data)
+    normalized_data, norm_meta = CryptoArchiveDataLoader.normalize(data)
 
     # todo Data Shuffle
 
