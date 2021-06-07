@@ -1,17 +1,42 @@
-def divide_data(data: list, train_percentage: int = 75, valid_percentage: int = 25):
-    num_samples = len(data)
-    val_size = int(num_samples * (valid_percentage / 100.))
-    train_size = num_samples - val_size
-
-    assert train_percentage + valid_percentage == 100
-
-    train_dataset = data[:train_size]
-    val_dataset = data[train_size:]
-
-    assert len(train_dataset) + len(val_dataset) == num_samples
-
-    return train_dataset, val_dataset
+import numpy as np
+from matplotlib import pyplot as plt
+from pandas import DataFrame
 
 
-def split_dataset(data):
-    pass
+def divide_data(data: DataFrame, valid_percentage: int = 20, test_percentage: int = 10):
+    valid_set_size = int(np.round(valid_percentage / 100 * data.shape[0]))
+    test_set_size = int(np.round(test_percentage / 100 * data.shape[0]))
+    train_set_size = data.shape[0] - (valid_set_size + test_set_size)
+
+    assert train_set_size + valid_set_size + test_set_size == data.shape[0]
+
+    data = data.to_numpy()
+
+    x_train = data[:train_set_size, :-1]
+    y_train = data[:train_set_size, -1]
+
+    x_valid = data[train_set_size:train_set_size + valid_set_size, :-1]
+    y_valid = data[train_set_size:train_set_size + valid_set_size, -1]
+
+    x_test = data[train_set_size + valid_set_size:, :-1]
+    y_test = data[train_set_size + valid_set_size:, -1]
+
+    return [x_train, y_train, x_valid, y_valid, x_test, y_test]
+
+
+def shuffle_dataset(data: DataFrame):
+    shuffled = data.sample(frac=1).reset_index(drop=True)
+    return shuffled
+
+
+def plot_results(train_x, predictions, actual, filename=None):
+    plt.figure()
+    num_train = len(train_x)
+    plt.plot(list(range(num_train)), train_x, color='b', label='training data')
+    plt.plot(list(range(num_train, num_train + len(predictions))), predictions, color='r', label='predicted')
+    plt.plot(list(range(num_train, num_train + len(actual))), actual, color='g', label='test data')
+    plt.legend()
+    if filename is not None:
+        plt.savefig(filename)
+    else:
+        plt.show()
