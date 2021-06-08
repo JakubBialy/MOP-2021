@@ -59,7 +59,7 @@ class CryptoArchiveDataLoader:
 
     @staticmethod
     def __remove_unhelpful_columns(data: pd.DataFrame):
-        return data.drop(['volume',
+        return data.drop(['open timestamp', 'volume',
                           'taker buy quote asset volume',
                           'taker buy base asset volume',
                           'quote asset volume',
