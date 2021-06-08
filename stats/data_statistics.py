@@ -1,7 +1,11 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def generate_prediction_xy_plot(x, y, filepath=None):
+    plt.plot(range(len(y)), np.squeeze(y))
+    plt.plot(range(len(x)), np.squeeze(np.squeeze(x)))
+
     plt.show()
     plt.clf()
     plt.cla()

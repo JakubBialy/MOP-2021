@@ -1,72 +1,47 @@
-import numpy as np
-from keras.layers import SimpleRNN
-from keras.models import Sequential
-from tensorflow.python.keras.layers import Dropout, Dense
+import tensorflow as tf
 
 from config.config import get_model_dir
 from data.crypto_archive_data_loader import CryptoArchiveDataLoader
-from data.utils import divide_data
-from utils.utils import colab_detected
-
-
-def create_time_series(data, batches, series_length):
-    assert series_length > 0
-    assert batches > 0
-    assert len(data) > 0
-    assert len(data) >= series_length
-    step = (len(data)) // (batches + 1)
-
-    result = []
-    for batch_index in range(batches):
-        region_of_interest = data[batch_index * step: (batch_index * step) + series_length]
-        result.append(np.asarray(region_of_interest).reshape((-1, 1)))
-
-    return np.asarray(result)
-
+from data.utils import divide_data, split_x_y_batches
+from ml.model import RNNModel
+from stats.data_statistics import generate_prediction_xy_plot
 
 if __name__ == '__main__':
+    tf.config.set_visible_devices([], 'GPU')
+
     BATCH_SIZE = 8
     model_dir = get_model_dir()
-
-    print(f'Colab detected: {colab_detected()}')
 
     # Data
     # CryptoArchiveDataLoader.clear_all_caches()  # Optional
     data_loader = CryptoArchiveDataLoader()
     data = data_loader.load('ETHUSDT')
+
+    # Take first 1k
     data = data.iloc[:1_000]
+
+    # Normalization
     normalized_data, norm_meta = CryptoArchiveDataLoader.normalize(data, selected_cols=['open', 'close'])
 
+    # Divide + split x/y (input/target)
     train_data, valid_data = divide_data(normalized_data, valid_percentage=20)
-    train_x = create_time_series(train_data['open'].values, batches=BATCH_SIZE, series_length=100)
-    train_y = np.asarray(
-        [(ts[-1],) for ts in create_time_series(train_data['close'], batches=BATCH_SIZE, series_length=100)])
+    train_x, train_y = split_x_y_batches(train_data, BATCH_SIZE, 'open', 'close')
+    valid_x, valid_y = split_x_y_batches(train_data, BATCH_SIZE, 'open', 'close')
 
-    valid_x = create_time_series(valid_data['open'].values, batches=BATCH_SIZE, series_length=100)
-    valid_y = np.asarray(
-        [(ts[-1],) for ts in create_time_series(valid_data['close'], batches=BATCH_SIZE, series_length=100)])
-
-    model = Sequential()
-    model.add(SimpleRNN(units=20, return_sequences=True, input_shape=(None, 1)))
-    model.add(Dropout(0.2))
-    # model.add(LSTM(units=96, return_sequences=True))
-    # model.add(Dropout(0.2))
-    # model.add(LSTM(units=96, return_sequences=True))
-    # model.add(Dropout(0.2))
-    model.add(SimpleRNN(units=96))
-    model.add(Dropout(0.2))
-    model.add(Dense(units=1))
-
-    model.compile(loss='mean_squared_error', optimizer='adam')
+    # Create model
+    model = RNNModel(None, (None, 1))
 
     # if os.path.exists('eth_prediction.h5'):
     # model = load_model('eth_prediction.h5')
     # else:
-    model.fit(train_x, train_y, epochs=2, batch_size=BATCH_SIZE, verbose=2)
+    model.train(train_x, train_y, None, None, epochs=2, batch_size=BATCH_SIZE)
     # model.save('eth_prediction.h5')
 
-    predictions = model.predict(valid_y)
+    predictions = model.predict(valid_x)
     # predictions = scaler.inverse_transform(predictions)
+
+    generate_prediction_xy_plot(predictions, valid_y)
+    pass
 
     # fig, ax = plt.subplots(figsize=(8, 4))
     # plt.plot(data, color='red', label="True Price")
