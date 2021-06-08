@@ -2,6 +2,7 @@ import math
 import os
 import shutil
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -93,7 +94,7 @@ class CryptoArchiveDataLoader:
         return df, norm_info
 
     @staticmethod
-    def denormalize(normalization_meta_data: NormalizationMetaData, data: pd.DataFrame) -> pd.DataFrame:
+    def denormalize_df(normalization_meta_data: NormalizationMetaData, data: pd.DataFrame) -> pd.DataFrame:
         df = pd.DataFrame()
 
         for col_name in data:
@@ -104,3 +105,11 @@ class CryptoArchiveDataLoader:
                                                                      col_norm_dict.get('max')))
 
         return df
+
+    @staticmethod
+    def denormalize(normalization_meta_data: NormalizationMetaData, data: np.ndarray, col_name: str) -> pd.DataFrame:
+        col_norm_dict = normalization_meta_data.data.get(col_name)
+
+        return CryptoArchiveDataLoader.minmax_denormalize(data,
+                                                          col_norm_dict.get('min'),
+                                                          col_norm_dict.get('max'))

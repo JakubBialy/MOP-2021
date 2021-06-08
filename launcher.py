@@ -1,6 +1,5 @@
 import os
 
-import pandas as pd
 import tensorflow as tf
 
 from config.config import get_model_dir
@@ -40,14 +39,10 @@ if __name__ == '__main__':
     model.summary()
 
     predictions = model.predict(valid_y)
+    predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions, 'close')
+    valid_y_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, valid_y, 'close')
 
-    predictions_df = pd.DataFrame({'close': list(predictions.flatten())})
-
-    predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions_df)
-    # predictions = scaler.inverse_transform(predictions)
-
-    generate_prediction_xy_plot(predictions, valid_y)
-    pass
+    generate_prediction_xy_plot(predictions_denormalized, valid_y_denormalized)
 
     # fig, ax = plt.subplots(figsize=(8, 4))
     # plt.plot(data, color='red', label="True Price")
