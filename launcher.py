@@ -1,5 +1,3 @@
-import os
-
 import tensorflow as tf
 
 from config.config import get_model_dir
@@ -40,11 +38,15 @@ if __name__ == '__main__':
     # else:
     model.train(train_x, train_y, epochs=2, batch_size=BATCH_SIZE)
     model.summary()
-    model.save(model_filepath)
+    # model.save(model_filepath)
 
     # model.save('eth_prediction.h5')
 
-    predictions = model.predict(valid_x)
+    predictions = model.predict(valid_y)
+
+    predictions_df = pd.DataFrame({'close': list(predictions.flatten())})
+
+    predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions_df)
     # predictions = scaler.inverse_transform(predictions)
 
     generate_prediction_xy_plot(predictions, valid_y)
