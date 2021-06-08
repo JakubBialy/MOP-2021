@@ -1,11 +1,12 @@
 import os
 
 import tensorflow as tf
+from tensorflow.python.keras.models import model_from_json
 
 from config.config import get_model_dir
 from data.crypto_archive_data_loader import CryptoArchiveDataLoader
 from data.utils import divide_data, split_x_y_batches
-from ml.model import load_else_create
+from ml.model import load_else_create, RNNModel
 from stats.data_statistics import generate_prediction_xy_plot
 
 if __name__ == '__main__':
@@ -33,10 +34,19 @@ if __name__ == '__main__':
 
     # Create model
     # model = RNNModel((None, 1))
-    model = load_else_create(model_filepath, (None, 1))
+    model = load_else_create((None, 1))
 
-    model.train(train_x, train_y, epochs=2, batch_size=BATCH_SIZE)
-    model.summary()
+    if os.path.exists('save_weights.index'):
+        model.model.compile(loss='mean_squared_error', optimizer='adam')
+        model.model.train_on_batch(train_x[:1], train_y[:1])
+        model.model.load_weights('save_weights')
+    else:
+        model.train(train_x, train_y, epochs=2, batch_size=BATCH_SIZE)
+        model.summary()
+        model.model.save_weights('save_weights', save_format='tf')
+    # model.save(model_filepath)
+
+    # model.save('eth_prediction.h5')
 
     predictions = model.predict(valid_y)
     predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions, 'close')

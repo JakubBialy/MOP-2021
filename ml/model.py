@@ -43,17 +43,17 @@ class RNNModel:
         return model
 
 
-def load(filepath) -> RNNModel:
+def load(input_shape) -> RNNModel:
     try:
-        model = tf.keras.models.load_model(filepath)
+        model = RNNModel(input_shape)
         return model
     except Exception as e:
         raise ModelLoadError()
 
 
-def load_else_create(filepath, input_shape) -> RNNModel:
+def load_else_create(input_shape) -> RNNModel:
     try:
-        return load(filepath)
+        return load(input_shape)
     except ModelLoadError:
         return create(input_shape)
 
