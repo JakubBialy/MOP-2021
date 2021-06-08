@@ -1,19 +1,31 @@
-import os
-
 import numpy as np
-from matplotlib import pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
-from keras.models import Sequential, load_model
-from tensorflow.python.keras.layers import LSTM, Dropout, Dense
+from keras.layers import SimpleRNN
+from keras.models import Sequential
+from tensorflow.python.keras.layers import Dropout, Dense
 
 from config.config import get_model_dir
 from data.crypto_archive_data_loader import CryptoArchiveDataLoader
 from data.utils import divide_data
-from ml.model import load_else_create, create
-from stats.data_statistics import generate_prediction_xy_plot, plot_results
 from utils.utils import colab_detected
 
+
+def create_time_series(data, batches, series_length):
+    assert series_length > 0
+    assert batches > 0
+    assert len(data) > 0
+    assert len(data) >= series_length
+    step = (len(data)) // (batches + 1)
+
+    result = []
+    for batch_index in range(batches):
+        region_of_interest = data[batch_index * step: (batch_index * step) + series_length]
+        result.append(np.asarray(region_of_interest).reshape((-1, 1)))
+
+    return np.asarray(result)
+
+
 if __name__ == '__main__':
+    BATCH_SIZE = 8
     model_dir = get_model_dir()
 
     print(f'Colab detected: {colab_detected()}')
@@ -22,74 +34,51 @@ if __name__ == '__main__':
     # CryptoArchiveDataLoader.clear_all_caches()  # Optional
     data_loader = CryptoArchiveDataLoader()
     data = data_loader.load('ETHUSDT')
+    data = data.iloc[:1_000]
+    normalized_data, norm_meta = CryptoArchiveDataLoader.normalize(data, selected_cols=['open', 'close'])
 
-    data = data.iloc[0:1000]
+    train_data, valid_data = divide_data(normalized_data, valid_percentage=20)
+    train_x = create_time_series(train_data['open'].values, batches=BATCH_SIZE, series_length=100)
+    train_y = np.asarray(
+        [(ts[-1],) for ts in create_time_series(train_data['close'], batches=BATCH_SIZE, series_length=100)])
 
-    data = data['open'].values
-    data = data.reshape(-1, 1)
-
-    # Data Normalziation
-
-    # normalized_data, norm_meta = CryptoArchiveDataLoader.normalize(data)
-
-    dataset_train = np.array(data[:int(data.shape[0] * 0.8)])
-    dataset_test = np.array(data[int(data.shape[0] * 0.8) - 50:])
-    scaler = MinMaxScaler(feature_range=(0, 1))
-
-    dataset_train = scaler.fit_transform(dataset_train)
-    dataset_test = scaler.fit_transform(dataset_test)
-
-
-    def create_dataset(df):
-        x = []
-        y = []
-        for i in range(50, df.shape[0]):
-            x.append(df[i - 50:i, 0])
-            y.append(df[i, 0])
-        x = np.array(x)
-        y = np.array(y)
-        return x, y
-
-
-    x_train, y_train = create_dataset(dataset_train)
-    x_test, y_test = create_dataset(dataset_test)
-
-    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-    x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+    valid_x = create_time_series(valid_data['open'].values, batches=BATCH_SIZE, series_length=100)
+    valid_y = np.asarray(
+        [(ts[-1],) for ts in create_time_series(valid_data['close'], batches=BATCH_SIZE, series_length=100)])
 
     model = Sequential()
-    model.add(LSTM(units=96, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+    model.add(SimpleRNN(units=20, return_sequences=True, input_shape=(None, 1)))
     model.add(Dropout(0.2))
-    model.add(LSTM(units=96, return_sequences=True))
-    model.add(Dropout(0.2))
-    model.add(LSTM(units=96, return_sequences=True))
-    model.add(Dropout(0.2))
-    model.add(LSTM(units=96))
+    # model.add(LSTM(units=96, return_sequences=True))
+    # model.add(Dropout(0.2))
+    # model.add(LSTM(units=96, return_sequences=True))
+    # model.add(Dropout(0.2))
+    model.add(SimpleRNN(units=96))
     model.add(Dropout(0.2))
     model.add(Dense(units=1))
 
     model.compile(loss='mean_squared_error', optimizer='adam')
 
     # if os.path.exists('eth_prediction.h5'):
-        # model = load_model('eth_prediction.h5')
+    # model = load_model('eth_prediction.h5')
     # else:
-    model.fit(x_train, y_train, epochs=50, batch_size=32)
-        # model.save('eth_prediction.h5')
+    model.fit(train_x, train_y, epochs=2, batch_size=BATCH_SIZE, verbose=2)
+    # model.save('eth_prediction.h5')
 
-    predictions = model.predict(x_test)
-    predictions = scaler.inverse_transform(predictions)
+    predictions = model.predict(valid_y)
+    # predictions = scaler.inverse_transform(predictions)
 
-    fig, ax = plt.subplots(figsize=(8, 4))
-    plt.plot(data, color='red', label="True Price")
-    ax.plot(range(len(y_train) + 50, len(y_train) + 50 + len(predictions)), predictions, color='blue',
-            label='Predicted Testing Price')
-    plt.legend()
-
-    y_test_scaled = scaler.inverse_transform(y_test.reshape(-1, 1))
-
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(y_test_scaled, color='red', label='True Testing Price')
-    plt.plot(predictions, color='blue', label='Predicted Testing Price')
-    plt.legend()
-
-    plt.show()
+    # fig, ax = plt.subplots(figsize=(8, 4))
+    # plt.plot(data, color='red', label="True Price")
+    # ax.plot(range(len(y_train) + 50, len(y_train) + 50 + len(predictions)), predictions, color='blue',
+    #         label='Predicted Testing Price')
+    # plt.legend()
+    #
+    # y_test_scaled = scaler.inverse_transform(y_test.reshape(-1, 1))
+    #
+    # fig, ax = plt.subplots(figsize=(8, 4))
+    # ax.plot(y_test_scaled, color='red', label='True Testing Price')
+    # plt.plot(predictions, color='blue', label='Predicted Testing Price')
+    # plt.legend()
+    #
+    # plt.show()

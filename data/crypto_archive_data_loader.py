@@ -51,11 +51,7 @@ class CryptoArchiveDataLoader:
                          names=['open timestamp', 'open', 'high', 'low', 'close', 'volume',
                                 'taker buy quote asset volume', 'taker buy base asset volume', 'quote asset volume',
                                 'number of trades'])
-        df.set_index('open timestamp')
-
-        df = self.__remove_unhelpful_columns(df)
-
-        return df
+        return df.set_index('open timestamp')
 
     @staticmethod
     def __remove_unhelpful_columns(data: pd.DataFrame):
@@ -72,7 +68,10 @@ class CryptoArchiveDataLoader:
         return (x - min_val) / (max_val - min_val)
 
     @staticmethod
-    def normalize(data: pd.DataFrame) -> (pd.DataFrame, NormalizationMetaData):
+    def normalize(data: pd.DataFrame, selected_cols=None) -> (pd.DataFrame, NormalizationMetaData,):
+        if selected_cols is not None:
+            data = data[selected_cols]
+
         norm_info = NormalizationMetaData()
         df = pd.DataFrame()
         for col_name in data:
