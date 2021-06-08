@@ -1,3 +1,4 @@
+import pandas as pd
 import tensorflow as tf
 
 from config.config import get_model_dir
@@ -17,8 +18,8 @@ if __name__ == '__main__':
     data_loader = CryptoArchiveDataLoader()
     data = data_loader.load('ETHUSDT')
 
-    # Take first 1k
-    data = data.iloc[:1_000]
+    # Take last 1k
+    data = data.iloc[-1000:]
 
     # Normalization
     normalized_data, norm_meta = CryptoArchiveDataLoader.normalize(data, selected_cols=['open', 'close'])
@@ -37,7 +38,11 @@ if __name__ == '__main__':
     model.train(train_x, train_y, None, None, epochs=2, batch_size=BATCH_SIZE)
     # model.save('eth_prediction.h5')
 
-    predictions = model.predict(valid_x)
+    predictions = model.predict(valid_y)
+
+    predictions_df = pd.DataFrame({'close': list(predictions.flatten())})
+
+    predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions_df)
     # predictions = scaler.inverse_transform(predictions)
 
     generate_prediction_xy_plot(predictions, valid_y)

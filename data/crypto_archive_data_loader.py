@@ -68,6 +68,12 @@ class CryptoArchiveDataLoader:
         return (x - min_val) / (max_val - min_val)
 
     @staticmethod
+    def minmax_denormalize(y, min_val, max_val):
+        assert math.fabs(max_val - min_val) > 0.0001
+
+        return y * (max_val - min_val) + min_val
+
+    @staticmethod
     def normalize(data: pd.DataFrame, selected_cols=None) -> (pd.DataFrame, NormalizationMetaData,):
         if selected_cols is not None:
             data = data[selected_cols]
@@ -88,4 +94,13 @@ class CryptoArchiveDataLoader:
 
     @staticmethod
     def denormalize(normalization_meta_data: NormalizationMetaData, data: pd.DataFrame) -> pd.DataFrame:
-        pass  # todo
+        df = pd.DataFrame()
+
+        for col_name in data:
+            col_norm_dict = normalization_meta_data.data.get(col_name)
+            df[col_name] = data[col_name].apply(
+                lambda y: CryptoArchiveDataLoader.minmax_denormalize(y,
+                                                                     col_norm_dict.get('min'),
+                                                                     col_norm_dict.get('max')))
+
+        return df
