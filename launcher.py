@@ -30,20 +30,14 @@ if __name__ == '__main__':
     # Divide + split x/y (input/target)
     train_data, valid_data = divide_data(normalized_data, valid_percentage=20)
     train_x, train_y = split_x_y_batches(train_data, BATCH_SIZE, 'open', 'close')
-    valid_x, valid_y = split_x_y_batches(train_data, BATCH_SIZE, 'open', 'close')
+    valid_x, valid_y = split_x_y_batches(valid_data, BATCH_SIZE, 'open', 'close')
 
     # Create model
     # model = RNNModel((None, 1))
     model = load_else_create(model_filepath, (None, 1))
 
-    # if os.path.exists('eth_prediction.h5'):
-    # model = load_model('eth_prediction.h5')
-    # else:
     model.train(train_x, train_y, epochs=2, batch_size=BATCH_SIZE)
     model.summary()
-    # model.save(model_filepath)
-
-    # model.save('eth_prediction.h5')
 
     predictions = model.predict(valid_y)
 
