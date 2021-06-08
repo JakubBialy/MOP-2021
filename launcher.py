@@ -1,9 +1,11 @@
+import os
+
 import tensorflow as tf
 
 from config.config import get_model_dir
 from data.crypto_archive_data_loader import CryptoArchiveDataLoader
 from data.utils import divide_data, split_x_y_batches
-from ml.model import RNNModel
+from ml.model import load_else_create
 from stats.data_statistics import generate_prediction_xy_plot
 
 if __name__ == '__main__':
@@ -11,6 +13,7 @@ if __name__ == '__main__':
 
     BATCH_SIZE = 8
     model_dir = get_model_dir()
+    model_filepath = os.path.join(model_dir, 'model.h5')
 
     # Data
     # CryptoArchiveDataLoader.clear_all_caches()  # Optional
@@ -29,12 +32,16 @@ if __name__ == '__main__':
     valid_x, valid_y = split_x_y_batches(train_data, BATCH_SIZE, 'open', 'close')
 
     # Create model
-    model = RNNModel(None, (None, 1))
+    # model = RNNModel((None, 1))
+    model = load_else_create(model_filepath, (None, 1))
 
     # if os.path.exists('eth_prediction.h5'):
     # model = load_model('eth_prediction.h5')
     # else:
-    model.train(train_x, train_y, None, None, epochs=2, batch_size=BATCH_SIZE)
+    model.train(train_x, train_y, epochs=2, batch_size=BATCH_SIZE)
+    model.summary()
+    model.save(model_filepath)
+
     # model.save('eth_prediction.h5')
 
     predictions = model.predict(valid_x)
