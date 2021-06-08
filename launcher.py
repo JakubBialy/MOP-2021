@@ -41,7 +41,7 @@ if __name__ == '__main__':
         model.model.train_on_batch(train_x[:1], train_y[:1])
         model.model.load_weights('save_weights')
     else:
-        model.train(train_x, train_y, epochs=2, batch_size=BATCH_SIZE)
+        model.train(train_x, train_y, epochs=20, batch_size=BATCH_SIZE)
         model.summary()
         model.model.save_weights('save_weights', save_format='tf')
     # model.save(model_filepath)

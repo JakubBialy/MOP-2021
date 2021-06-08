@@ -3,12 +3,23 @@ import numpy as np
 
 
 def generate_prediction_xy_plot(x, y, filepath=None):
-    plt.plot(range(len(y)), np.squeeze(y))
-    plt.plot(range(len(x)), np.squeeze(np.squeeze(x)))
+    x = x.flatten()
+    y = y.flatten()
 
-    plt.show()
-    plt.clf()
-    plt.cla()
+    plt.figure()
+    num_x = len(x)
+    num_y = len(y)
+
+    plt.plot(list(range(num_x)), x, color='b', label='predicted')
+    plt.plot(list(range(num_y)), y, color='r', label='validation')
+    plt.legend()
+
+    if filepath is not None:
+        plt.savefig(filepath)
+    else:
+        plt.show()
+        plt.clf()
+        plt.cla()
 
 
 def plot_results(train_x, predictions, actual, filename=None):
