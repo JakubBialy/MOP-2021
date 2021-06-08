@@ -12,8 +12,6 @@ class RNNModel:
 
         self.model = self.__create_model(input_shape)
 
-        # self.model.summary() #todo
-
     def train(self, train_x, train_y, valid_x, valid_y, epochs, batch_size):
         # self.model.fit(x=train_x, y=train_y, validation_data=(valid_x, valid_y), epochs=200)
         self.model.fit(x=train_x, y=train_y, epochs=2, batch_size=batch_size)
@@ -21,6 +19,9 @@ class RNNModel:
 
     def predict(self, test_x):
         return self.model.predict(x=test_x)
+
+    def summary(self):
+        self.model.summary()
 
     @staticmethod
     def __create_model(input_shape):
