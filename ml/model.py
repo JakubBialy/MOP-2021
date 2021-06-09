@@ -14,7 +14,7 @@ class RNNModel:
             self.model.fit(x=train_x, y=train_y, validation_data=(valid_x, valid_y), epochs=epochs,
                            batch_size=batch_size)
         else:
-            self.model.fit(x=train_x, y=train_y, epochs=2, batch_size=batch_size)
+            self.model.fit(x=train_x, y=train_y, epochs=epochs, batch_size=batch_size)
 
     def save(self, filepath):
         self.model.save(filepath)
