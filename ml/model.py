@@ -1,5 +1,4 @@
-import tensorflow as tf
-from keras.layers import SimpleRNN, LSTM
+from keras.layers import LSTM
 from tensorflow.python.keras.layers import Dense, Dropout
 from tensorflow.python.keras.models import Sequential
 
@@ -8,6 +7,7 @@ class RNNModel:
     def __init__(self, input_shape):
         super(RNNModel, self).__init__()
         self.model = self.__create_model(input_shape)
+        self.model.build(input_shape)
 
     def train(self, train_x, train_y, epochs, batch_size, valid_x=None, valid_y=None):
         if valid_x is not None and valid_y is not None:
@@ -17,7 +17,8 @@ class RNNModel:
             self.model.fit(x=train_x, y=train_y, epochs=epochs, batch_size=batch_size)
 
     def save(self, filepath):
-        self.model.save(filepath)
+        self.model.save_weights(filepath, save_format='tf')
+        # self.model.save(filepath)
 
     def predict(self, test_x):
         return self.model.predict(x=test_x)
@@ -43,17 +44,18 @@ class RNNModel:
         return model
 
 
-def load(input_shape) -> RNNModel:
+def load(filepath, input_shape) -> RNNModel:
     try:
         model = RNNModel(input_shape)
+        model.model.load_weights(filepath)
         return model
     except Exception as e:
         raise ModelLoadError()
 
 
-def load_else_create(input_shape) -> RNNModel:
+def load_else_create(filepath, input_shape) -> RNNModel:
     try:
-        return load(input_shape)
+        return load(filepath, input_shape)
     except ModelLoadError:
         return create(input_shape)
 

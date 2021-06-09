@@ -8,13 +8,16 @@ from data.utils import divide_data, split_x_y_batches
 from ml.model import load_else_create
 from stats.data_statistics import generate_prediction_xy_plot
 
-if __name__ == '__main__':
+
+def main():
     tf.config.set_visible_devices([], 'GPU')
 
-    BATCH_SIZE = 8
+    BATCH_SIZE = 100
+    DATA_SIZE = 10_000
+    BATCHES = DATA_SIZE // BATCH_SIZE
     EPOCHS = 100
     model_dir = get_model_dir()
-    model_filepath = os.path.join(model_dir, 'model.h5')
+    model_filepath = os.path.join(model_dir, 'model_weights')
 
     # Data
     # CryptoArchiveDataLoader.clear_all_caches()  # Optional
@@ -22,31 +25,21 @@ if __name__ == '__main__':
     data = data_loader.load('ETHUSDT')
 
     # Take first 1k
-    data = data.iloc[:1_000]
+    data = data.iloc[:DATA_SIZE]
 
     # Normalization
     normalized_data, norm_meta = CryptoArchiveDataLoader.normalize(data, selected_cols=['open', 'close'])
 
     # Divide + split x/y (input/target)
     train_data, valid_data = divide_data(normalized_data, valid_percentage=20)
-    train_x, train_y = split_x_y_batches(train_data, BATCH_SIZE, 100, 'open', 'close')
-    valid_x, valid_y = split_x_y_batches(valid_data, BATCH_SIZE, 100, 'open', 'close')
+    train_x, train_y = split_x_y_batches(train_data, BATCHES, BATCH_SIZE, 'open', 'close')
+    valid_x, valid_y = split_x_y_batches(valid_data, BATCHES, BATCH_SIZE, 'open', 'close')
 
     # Create model
-    # model = RNNModel((None, 1))
-    model = load_else_create((None, 1))
+    model = load_else_create(model_filepath, (None, BATCH_SIZE, 1))
 
-    if os.path.exists('save_weights.index'):
-        model.model.compile(loss='mean_squared_error', optimizer='adam')
-        model.model.train_on_batch(train_x[:1], train_y[:1])
-        model.model.load_weights('save_weights')
-    else:
-        model.train(train_x, train_y, epochs=EPOCHS, batch_size=BATCH_SIZE)
-        model.summary()
-        model.model.save_weights('save_weights', save_format='tf')
-    # model.save(model_filepath)
-
-    # model.save('eth_prediction.h5')
+    model.train(train_x, train_y, EPOCHS, BATCH_SIZE)
+    model.save(model_filepath)
 
     predictions = model.predict(valid_x)
     predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions, 'close')
@@ -68,3 +61,7 @@ if __name__ == '__main__':
     # plt.legend()
     #
     # plt.show()
+
+
+if __name__ == '__main__':
+    main()
