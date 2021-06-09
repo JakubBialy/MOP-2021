@@ -27,8 +27,8 @@ def main():
     data_loader = CryptoArchiveDataLoader()
     data = data_loader.load('ETHUSDT')
 
-    # Take first DATA_SIZE rows
-    data = data.iloc[:DATA_SIZE]
+    # Take last DATA_SIZE rows
+    data = data.iloc[-DATA_SIZE:]
 
     # Normalization
     normalized_data, norm_meta = CryptoArchiveDataLoader.normalize(data, selected_cols=['open', 'close'])
