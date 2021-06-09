@@ -12,10 +12,13 @@ from stats.data_statistics import generate_prediction_xy_plot
 def main():
     tf.config.set_visible_devices([], 'GPU')
 
-    BATCH_SIZE = 100
-    DATA_SIZE = 10_000
+    #Hyperparameters
+    BATCH_SIZE = 125
+    DATA_SIZE = 25_000
+    EPOCHS = 25
+
     BATCHES = DATA_SIZE // BATCH_SIZE
-    EPOCHS = 100
+
     model_dir = get_model_dir()
     model_filepath = os.path.join(model_dir, 'model_weights')
 
@@ -24,7 +27,7 @@ def main():
     data_loader = CryptoArchiveDataLoader()
     data = data_loader.load('ETHUSDT')
 
-    # Take first 1k
+    # Take first DATA_SIZE rows
     data = data.iloc[:DATA_SIZE]
 
     # Normalization
@@ -45,7 +48,7 @@ def main():
     predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions, 'close')
     valid_y_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, valid_y, 'close')
 
-    generate_prediction_xy_plot(predictions_denormalized, valid_y_denormalized)
+    generate_prediction_xy_plot(predictions_denormalized, valid_y_denormalized, 'image')
 
     # fig, ax = plt.subplots(figsize=(8, 4))
     # plt.plot(data, color='red', label="True Price")

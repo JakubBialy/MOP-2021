@@ -2,16 +2,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def generate_prediction_xy_plot(x, y, filepath=None):
-    x = x.flatten()
-    y = y.flatten()
+def generate_prediction_xy_plot(predicted, original, filepath=None):
+    predicted = predicted.flatten()
+    original = original.flatten()
 
     plt.figure()
-    num_x = len(x)
-    num_y = len(y)
+    num_x = len(predicted)
+    num_y = len(original)
 
-    plt.plot(list(range(num_x)), x, color='b', label='predicted')
-    plt.plot(list(range(num_y)), y, color='r', label='validation')
+    plt.plot(list(range(num_x)), predicted, color='b', label='Predicted prizes at close')
+    plt.plot(list(range(num_y)), original, color='r', label='Original prizes at close')
+    plt.title('Newest ETH/USD predictions prize')
     plt.legend()
 
     if filepath is not None:
@@ -20,16 +21,3 @@ def generate_prediction_xy_plot(x, y, filepath=None):
         plt.show()
         plt.clf()
         plt.cla()
-
-
-def plot_results(train_x, predictions, actual, filename=None):
-    plt.figure()
-    num_train = len(train_x)
-    plt.plot(list(range(num_train)), train_x, color='b', label='training data')
-    plt.plot(list(range(num_train, num_train + len(predictions))), predictions, color='r', label='predicted')
-    plt.plot(list(range(num_train, num_train + len(actual))), actual, color='g', label='test data')
-    plt.legend()
-    if filename is not None:
-        plt.savefig(filename)
-    else:
-        plt.show()

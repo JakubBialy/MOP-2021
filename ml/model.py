@@ -1,5 +1,5 @@
 from keras.layers import LSTM
-from tensorflow.python.keras.layers import Dense, Dropout
+from tensorflow.python.keras.layers import Dense, Dropout, GRU
 from tensorflow.python.keras.models import Sequential
 
 
@@ -29,14 +29,11 @@ class RNNModel:
     @staticmethod
     def __create_model(input_shape):
         model = Sequential()
-        model.add(LSTM(units=20, return_sequences=True, input_shape=input_shape))
-        model.add(Dropout(0.2))
-        # model.add(LSTM(units=96, return_sequences=True))
-        # model.add(Dropout(0.2))
-        # model.add(LSTM(units=96, return_sequences=True))
-        # model.add(Dropout(0.2))
-        model.add(LSTM(units=96))
-        model.add(Dropout(0.2))
+        model.add(LSTM(units=32, return_sequences=True, input_shape=input_shape))
+        model.add(Dropout(0.05))
+        model.add(LSTM(units=64, return_sequences=True))
+        model.add(Dropout(0.05))
+        model.add(GRU(units=64))
         model.add(Dense(units=1))
 
         model.compile(loss='mean_squared_error', optimizer='adam')
