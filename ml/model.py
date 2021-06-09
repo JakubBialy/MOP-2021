@@ -1,6 +1,7 @@
 from keras.layers import LSTM
 from tensorflow.python.keras.layers import Dense, Dropout, GRU
 from tensorflow.python.keras.models import Sequential
+from tensorflow.keras.utils import plot_model
 
 
 class RNNModel:
@@ -25,6 +26,9 @@ class RNNModel:
 
     def summary(self):
         self.model.summary()
+
+    def plot_model(self, filepath):
+        plot_model(self.model, to_file=filepath)
 
     @staticmethod
     def __create_model(input_shape):

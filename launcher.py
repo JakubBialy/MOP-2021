@@ -9,6 +9,7 @@ from ml.model import load_else_create
 from stats.data_statistics import generate_prediction_xy_plot
 
 
+
 def main():
     tf.config.set_visible_devices([], 'GPU')
 
@@ -42,6 +43,8 @@ def main():
     model = load_else_create(model_filepath, (None, BATCH_SIZE, 1))
 
     model.train(train_x, train_y, EPOCHS, BATCH_SIZE)
+    model.summary()
+    model.plot_model('model.png')
     model.save(model_filepath)
 
     predictions = model.predict(valid_x)
