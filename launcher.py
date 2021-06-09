@@ -1,12 +1,11 @@
 import os
 
 import tensorflow as tf
-from tensorflow.python.keras.models import model_from_json
 
 from config.config import get_model_dir
 from data.crypto_archive_data_loader import CryptoArchiveDataLoader
 from data.utils import divide_data, split_x_y_batches
-from ml.model import load_else_create, RNNModel
+from ml.model import load_else_create
 from stats.data_statistics import generate_prediction_xy_plot
 
 if __name__ == '__main__':
@@ -29,8 +28,8 @@ if __name__ == '__main__':
 
     # Divide + split x/y (input/target)
     train_data, valid_data = divide_data(normalized_data, valid_percentage=20)
-    train_x, train_y = split_x_y_batches(train_data, BATCH_SIZE, 'open', 'close')
-    valid_x, valid_y = split_x_y_batches(valid_data, BATCH_SIZE, 'open', 'close')
+    train_x, train_y = split_x_y_batches(train_data, BATCH_SIZE, 100, 'open', 'close')
+    valid_x, valid_y = split_x_y_batches(valid_data, BATCH_SIZE, 100, 'open', 'close')
 
     # Create model
     # model = RNNModel((None, 1))
@@ -48,7 +47,7 @@ if __name__ == '__main__':
 
     # model.save('eth_prediction.h5')
 
-    predictions = model.predict(valid_y)
+    predictions = model.predict(valid_x)
     predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions, 'close')
     valid_y_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, valid_y, 'close')
 
