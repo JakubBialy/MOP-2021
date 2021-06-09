@@ -35,9 +35,9 @@ def main():
     normalized_data, norm_meta = CryptoArchiveDataLoader.normalize(data, selected_cols=['open', 'close'])
 
     # Divide + split x/y (input/target)
-    train_data, valid_data = divide_data(normalized_data, valid_percentage=20)
+    train_data, test_data = divide_data(normalized_data, test_percentage=20)
     train_x, train_y = split_x_y_batches(train_data, BATCHES, BATCH_SIZE, 'open', 'close')
-    valid_x, valid_y = split_x_y_batches(valid_data, BATCHES, BATCH_SIZE, 'open', 'close')
+    test_x, test_y = split_x_y_batches(test_data, BATCHES, BATCH_SIZE, 'open', 'close')
 
     # Create model
     model = load_else_create(model_filepath, (BATCH_SIZE, 1))
@@ -47,9 +47,9 @@ def main():
     model.plot_model('model.png')
     model.save(model_filepath)
 
-    predictions = model.predict(valid_x)
+    predictions = model.predict(test_x)
     predictions_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, predictions, 'close')
-    valid_y_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, valid_y, 'close')
+    valid_y_denormalized = CryptoArchiveDataLoader.denormalize(norm_meta, test_y, 'close')
 
     generate_prediction_xy_plot(predictions_denormalized, valid_y_denormalized, 'image')
 
