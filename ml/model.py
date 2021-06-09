@@ -1,5 +1,4 @@
-from keras.layers import LSTM
-from tensorflow.python.keras.layers import Dense, Dropout, GRU
+from tensorflow.python.keras.layers import Dense, Dropout, GRU, LSTM
 from tensorflow.python.keras.models import Sequential
 from tensorflow.keras.utils import plot_model
 

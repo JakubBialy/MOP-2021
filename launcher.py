@@ -40,7 +40,7 @@ def main():
     valid_x, valid_y = split_x_y_batches(valid_data, BATCHES, BATCH_SIZE, 'open', 'close')
 
     # Create model
-    model = load_else_create(model_filepath, (None, BATCH_SIZE, 1))
+    model = load_else_create(model_filepath, (BATCH_SIZE, 1))
 
     model.train(train_x, train_y, EPOCHS, BATCH_SIZE)
     model.summary()
